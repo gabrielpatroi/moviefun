@@ -10,6 +10,7 @@ import org.apache.tika.Tika;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +24,6 @@ public class S3Store implements BlobStore {
         this.s3 = s3;
         this.bucketName = bucketName;
     }
-
 
     @Override
     public void put(Blob blob) throws IOException {
@@ -58,5 +58,12 @@ public class S3Store implements BlobStore {
         for (S3ObjectSummary summary : summaries) {
             s3.deleteObject(bucketName, summary.getKey());
         }
+    }
+
+    public void putLocalResource(String name, String path) {
+        ClassLoader classLoader = getClass().getClassLoader();
+        InputStream input = classLoader.getResourceAsStream(path);
+
+        s3.putObject(bucketName, name, input, new ObjectMetadata());
     }
 }

@@ -16,12 +16,14 @@
  */
 package org.superbiz.moviefun.albums;
 
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.sql.DataSource;
 import java.util.List;
 
 @Repository
@@ -48,6 +50,11 @@ public class AlbumsBean {
     @Transactional
     public void deleteAlbum(Album album) {
         entityManager.remove(album);
+    }
+
+    @Transactional
+    public int deleteAlbum(long albumId) {
+        return entityManager.createQuery("DELETE FROM Album WHERE id=" + albumId).executeUpdate();
     }
 
     @Transactional

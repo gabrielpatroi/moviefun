@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.superbiz.moviefun.blobstore.Blob;
 import org.superbiz.moviefun.blobstore.BlobStore;
+import org.superbiz.moviefun.blobstore.S3Store;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,11 +41,12 @@ public class AlbumsUpdater {
     }
 
     public void update() throws IOException {
-        Optional<Blob> maybeBlob = blobStore.get("albums.csv");
+        Optional<Blob> maybeBlob = blobStore.get("albums");
 
         if (!maybeBlob.isPresent()) {
             logger.info("No albums.csv found when running AlbumsUpdater!");
-            return;
+            ((S3Store) blobStore).putLocalResource("albums", "albums.csv");
+            maybeBlob = blobStore.get("albums");
         }
 
         List<Album> albumsToHave = readFromCsv(objectReader, maybeBlob.get().inputStream);
@@ -69,7 +71,7 @@ public class AlbumsUpdater {
             .stream()
             .filter(album -> albumsToHave.stream().noneMatch(album::isEquivalent));
 
-        albumsToDelete.forEach(albumsBean::deleteAlbum);
+        albumsToDelete.forEach(album -> albumsBean.deleteAlbum(album.getId()));
     }
 
     private void updateExistingAlbums(List<Album> albumsToHave, List<Album> albumsWeHave) {
@@ -86,4 +88,6 @@ public class AlbumsUpdater {
         maybeExisting.ifPresent(existing -> album.setId(existing.getId()));
         return album;
     }
+
+
 }
